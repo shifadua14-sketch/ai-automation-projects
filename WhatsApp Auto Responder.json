@@ -1,0 +1,1049 @@
+{
+  "name": "WhatsApp Auto Responder",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "27752f23-e3f8-4c34-8b5a-c4c32a6c046b",
+        "options": {}
+      },
+      "id": "ee6e0123-c088-4f07-94ea-435e7731d8b9",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -336,
+        -144
+      ],
+      "webhookId": "27752f23-e3f8-4c34-8b5a-c4c32a6c046b"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "19upJ9NxYuwOlDeseiGYEDSn53ujODnH1bH0d7nc7uhE",
+          "mode": "list",
+          "cachedResultName": "Leads AD Summer 27 V2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19upJ9NxYuwOlDeseiGYEDSn53ujODnH1bH0d7nc7uhE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1324225056,
+          "mode": "list",
+          "cachedResultName": "New Form_detailed",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19upJ9NxYuwOlDeseiGYEDSn53ujODnH1bH0d7nc7uhE/edit#gid=1324225056"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "phone",
+              "lookupValue": "={{ \"p: \" + $json.whatsappInboundMessage.from }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "83844c7c-b748-4a41-87c9-68de6c79bc45",
+      "name": "Get row(s) in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -16,
+        16
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zjq9elsXuAIz5ZKy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "68677649-a170-4ec6-9a7e-74c6fc6ac463",
+              "leftValue": "={{ $('Webhook').item.json.whatsappInboundMessage.customerProfile.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "adbc57e4-e1f5-47b5-9088-8574f65b3521",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        240,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3200d426-88f6-416b-a5fd-0b081e3846fe",
+              "name": "gpa",
+              "value": "={{ String($json[\"institution_and_cgpa/marks_achieved:_(e.g.,_\\\"bs_economics,_lums_–_3.4/4.0\\\")\"]).match(/\\d+\\.?\\d*/)?.[0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "72b3a291-f251-4dc2-9d9c-1d18b762feae",
+      "name": "gpa",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        576,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9b2fae78-6ec9-446a-8668-489bcc868c20",
+              "name": "tier",
+              "value": "={{ ($json.gpa_check === undefined ? 'empty' : (Number($json.gpa_check) >= 3.7 ? 'scholarship' : (Number($json.gpa_check) >= 3.3 ? 'tier1' : (Number($json.gpa_check) >= 3.0 ? 'tier3' : 'tier4')))).trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "7bb4131e-0f3e-46a5-a40d-0adb96280518",
+      "name": "tier",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        784,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tier }}",
+                    "rightValue": "scholarship",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7d1a079b-5a8b-441d-b800-75c938c2353a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Scholarship"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8e9ee66b-d5f6-4c86-86e4-dfff8945f14d",
+                    "leftValue": "={{ $json.tier }}",
+                    "rightValue": "tier1",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Tier 1"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8f374e27-ef6b-41f1-9f7a-62cf19b853bb",
+                    "leftValue": "={{ $json.tier }}",
+                    "rightValue": "tier2",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Tier 2"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "35396b8d-23ff-4187-bb57-416278af5f99",
+                    "leftValue": "={{ $json.tier }}",
+                    "rightValue": "tier3",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Tier 3"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3af4a134-c193-4b3a-aebf-d575e2475d18",
+                    "leftValue": "={{ $json.tier }}",
+                    "rightValue": "t",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Tier 4"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6f17e898-a1a3-40b4-9933-48bd4d9cdfb0",
+                    "leftValue": "={{ $json.tier }}",
+                    "rightValue": "empty",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Empty"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "08fdf51d-48e2-4950-8ff3-95dd8a804b52",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1a8bcfe3-5ce5-45d2-90e2-fba4c66420b0",
+              "name": "message",
+              "value": "=Hi {{ $json.full_name.split(' ')[0] }},  This is the Access Consulting Team here. Thank you for filling out the form.  Your profile puts you in an elite tier. You are an ideal candidate for Germany's top-ranked public universities and competitive scholarships.  Our team - mostly LUMS alumni now living and working in Germany - has walked this exact path; please review who we are at: https://theaccessconsulting.com/about/  Your CGPA sits above the 3.7 mark. We encourage you to take the Scholarship route as well as the public universities track in parallel. This means that our Scholarship Lead, Mir Sanaullah, who himself graduated on a Fulbright Scholarship from Columbia University, will prepare and review your documents.  You can check our student testimonials for proven results here: https://theaccessconsulting.com/proven-results/. We would be happy to answer any questions you may have regarding this.  Let's get your application moving!  ~The Access Consulting Team",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "31cd41cc-1710-4b72-961e-4b06dbf436bb",
+      "name": "Tier Scholarship",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1504,
+        -672
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7eb2bc2e-71f3-4f50-802f-ee6bb13dd488",
+              "name": "clean_phone",
+              "value": "={{ $json.phone.replace(/[^0-9]/g, '') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "f076d22d-0276-421e-9983-2a26f5a54a46",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        3024,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.ycloud.com/v2/whatsapp/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"from\": \"+4915772312591\",\n  \"to\": \"+{{ $json.clean_phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"{{ $json.message }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "23f90a6a-a07f-410a-b0c3-d7d1cf72523f",
+      "name": "Contact Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        3392,
+        -528
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8iIWlIPkBeLCVwam",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "19upJ9NxYuwOlDeseiGYEDSn53ujODnH1bH0d7nc7uhE",
+          "mode": "list",
+          "cachedResultName": "Leads AD Summer 27 V2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19upJ9NxYuwOlDeseiGYEDSn53ujODnH1bH0d7nc7uhE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1324225056,
+          "mode": "list",
+          "cachedResultName": "New Form_detailed",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19upJ9NxYuwOlDeseiGYEDSn53ujODnH1bH0d7nc7uhE/edit#gid=1324225056"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_status": "Contacted",
+            "phone": "={{ $('tier').item.json.phone }}"
+          },
+          "matchingColumns": [
+            "phone"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_time",
+              "displayName": "created_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ad_id",
+              "displayName": "ad_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ad_name",
+              "displayName": "ad_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "adset_id",
+              "displayName": "adset_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "adset_name",
+              "displayName": "adset_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "campaign_id",
+              "displayName": "campaign_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "campaign_name",
+              "displayName": "campaign_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "form_id",
+              "displayName": "form_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "form_name",
+              "displayName": "form_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "is_organic",
+              "displayName": "is_organic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "platform",
+              "displayName": "platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "do_you_have_12,000_eur_required_by_the_german_embassy_as_blocked_account?",
+              "displayName": "do_you_have_12,000_eur_required_by_the_german_embassy_as_blocked_account?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "your_cgpa_is_higher_than_2.65?",
+              "displayName": "your_cgpa_is_higher_than_2.65?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "which_level_are_you_applying_for_(e.g._bachelor's,_master's,_or_phd?",
+              "displayName": "which_level_are_you_applying_for_(e.g._bachelor's,_master's,_or_phd?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "what_field_do_you_want_to_study?_(specify_programme_or_research_area_if_known)",
+              "displayName": "what_field_do_you_want_to_study?_(specify_programme_or_research_area_if_known)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "when_do_you_want_to_start?__(e.g._within_6_months)",
+              "displayName": "when_do_you_want_to_start?__(e.g._within_6_months)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "after_completing_your_degree,_what_is_your_primary_plan?_(e.g._stay_abroad_or_return_to_pakistan)",
+              "displayName": "after_completing_your_degree,_what_is_your_primary_plan?_(e.g._stay_abroad_or_return_to_pakistan)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "institution_and_cgpa/marks_achieved:_(e.g.,_\"bs_economics,_lums_–_3.4/4.0\")",
+              "displayName": "institution_and_cgpa/marks_achieved:_(e.g.,_\"bs_economics,_lums_–_3.4/4.0\")",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "full-time_work_experience_(excluding_internships):",
+              "displayName": "full-time_work_experience_(excluding_internships):",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "_language_proficiency/standardized_test_scores_(e.g._gre/gmat,_ilets/toefl_etc.):",
+              "displayName": "_language_proficiency/standardized_test_scores_(e.g._gre/gmat,_ilets/toefl_etc.):",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "do_you_have_any_research/publication_output:",
+              "displayName": "do_you_have_any_research/publication_output:",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "where_are_you_in_the_process?_e.g._just_starting,_researching,_ready_to_apply",
+              "displayName": "where_are_you_in_the_process?_e.g._just_starting,_researching,_ready_to_apply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lead_status",
+              "displayName": "lead_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Shifa  Newsletter",
+              "displayName": "Shifa  Newsletter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Person incharge",
+              "displayName": "Person incharge",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status of reach out ",
+              "displayName": "Status of reach out ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "44bb2a4f-db93-4cc0-ae1f-92263011567f",
+      "name": "Lead Status updated",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4112,
+        -352
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zjq9elsXuAIz5ZKy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd52c034-dc7e-454f-959f-92a47a95a534",
+              "name": "=message",
+              "value": "=Hi {{ $json.full_name.split(' ')[0] }},  This is the Access Consulting Team here. Thank you for filling out the form.  Your profile and CGPA are outstanding.  Our team - mostly LUMS alumni now living and working in Germany and other countries - has walked this exact path; please review who we are at: https://theaccessconsulting.com/about/  Your CGPA sits above the 3.3 mark, which qualifies you for Tier 1 universities in Germany. This track is fully open to you as long as you have the €12,000 required as a blocked account for living expenses by the German Embassy.  You can check our testimonials for proven results: https://theaccessconsulting.com/proven-results/  We would be happy to answer any questions you may have regarding this.  Let's get your application moving!  ~ The Access Consulting Team",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "a7edf902-1295-425d-ba31-84df77d8102a",
+      "name": "Edit Fields1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1520,
+        -448
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4eabd97c-1f32-47d4-8527-8b9d85f1666e",
+              "name": "=message",
+              "value": "=Hi {{ $json.full_name.split(' ')[0] }},  This is the Access Consulting Team here.  Thank you for filling out the form. Your profile with your CGPA is very solid. You are in a great position for English-taught Master's programs across German public universities. Our team - mostly LUMS alumni now living and working in Germany - has walked this exact path; please review who we are at: https://theaccessconsulting.com/about/  Your CGPA sits above the 3.0 mark, which qualifies you for a strong range of public universities in Germany. We will strategically target 10 to 12 universities to lock in your admission. This is applicable as long as you have the 12,000 EUR required as a blocked account for living expenses by the German Embassy.  You can check our testimonials to see proven results: https://theaccessconsulting.com/proven-results/  We would be happy to answer any questions you may have regarding this. Let's get your application moving!  ~The Access Consulting Team",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f740ec8e-477e-45ad-9edc-63544f9f1fa3",
+      "name": "Edit Fields2",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1520,
+        -256
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c01b4e42-397f-4d62-90cb-7ac76ecced23",
+              "name": "message",
+              "value": "=Hi {{ $json.full_name.split(' ')[0] }},  This is the Access Consulting Team here. Securing admission at a German public university with your CGPA is possible, but it requires a highly precise, credit-mapped strategy to avoid automated portal rejections.  Our team - mostly LUMS alumni now living and working in Germany - has walked this exact path and specialize in navigating tough profiles. Please review who we are at: https://theaccessconsulting.com/about/ Our Founder, Harris Azhar, got into top colleges with a CGPA < 3.0, so we know what makes an application stand out beyond grades.  Your CGPA sits below the 3.0 mark. To secure your spot, we will run an aggressive campaign targeting 15 to 17 public universities. This works as long as you have the 12,000 EUR required as a blocked account for living expenses by the German Embassy.  You can check our testimonials to see proven results: https://theaccessconsulting.com/proven-results/  We would be happy to answer any questions you may have regarding this.  Let's get your application moving!  ~ The Access Consulting Team",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "25ee5132-ae12-45ba-b340-512b60721f00",
+      "name": "Edit Fields3",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1536,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "15b158a5-019d-401e-805d-24c4d44cb7e4",
+              "name": "message",
+              "value": "=Hi {{ $json.full_name.split(' ')[0] }},  This is the Access Consulting team here, thank you for reaching out to us! Our team consists of mostly LUMS alumni now living and working in Germany and other countries. To learn more about us visit: https://theaccessconsulting.com/about/ Please share your academic background, CGPA/percentage, and what you're currently aiming to pursue so we can guide you accordingly? You can also check out our testimonials to see proven results of our services: https://theaccessconsulting.com/proven-results/ We would be happy to answer any questions you may have regarding this.  Let's get your application moving!",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "a680c002-a875-405b-9469-db632f276aeb",
+      "name": "Edit Fields4",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1568,
+        160
+      ]
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {},
+          "query": {},
+          "params": {},
+          "body": {
+            "Body": "I filled the form",
+            "From": "whatsapp:+923341237681",
+            "ProfileName": "Shifa"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "gpa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gpa": {
+      "main": [
+        [
+          {
+            "node": "tier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "tier": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Tier Scholarship",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tier Scholarship": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Contact Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Lead": {
+      "main": [
+        [
+          {
+            "node": "Lead Status updated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ea4e2d20-74fa-49c0-8941-8b479d289bd3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fda5dcfe2ddf58e8adc5435c2c21ccbc36944d855ed5eeaa6c2e63f171518b9d"
+  },
+  "nodeGroups": [],
+  "id": "9MnNicrQdkkdtqtL",
+  "tags": []
+}
