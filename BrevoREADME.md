@@ -11,7 +11,7 @@ A lead-nurturing system built for an education consulting business (study-abroad
 
 ## The automation flow
 
-![Automation workflow](automation-flow.png)
+(automation-flow.png)
 
 The "Germany newsletter" automation runs a branching, time-delayed sequence:
 
