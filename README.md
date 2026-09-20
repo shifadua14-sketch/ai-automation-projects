@@ -19,6 +19,7 @@ An n8n workflow using an AI Agent node connected to OpenAI, Vector Knowledge Sea
 ### 2. Automated Lead Enrichment & Outreach (Make.com)
 A Make.com scenario that extracts lead domains, enriches them, uses Google Gemini AI to draft customized outreach emails, and logs execution in Google Sheets.
 
+![Make.com Leads Scraper](make.com%20leads%20scraper.png)
 
 * **Source:** Domain Search via HTTP
 * **Processing:** Data iteration & Google Sheets logging
